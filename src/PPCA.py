@@ -23,15 +23,7 @@ from scipy.spatial import distance
 from sklearn.model_selection import train_test_split
 
 
-# Seed the random number generator
-np.random.seed(148007482)
 
-# Parameters
-N = 50	#this is our number of dimensions
-num_points = 1000
-
-
-data = generate_multivariate(N, s, num_points)
 
 # We need to produce a random covariance matrix
 # We do this using the squared exponential covariance function k = exp(-r^2/2l^2)
@@ -44,28 +36,10 @@ data = generate_multivariate(N, s, num_points)
 # We also generate random N dimensional mean vector with values from 0 to 10
 #mean = np.random.uniform(0, 5, N)
 
-data_covariance = np.cov(data.T)
-data_precision = np.linalg.inv(data_covariance.T)
-
-plt.matshow(data_covariance)
-plt.title('Sample Covariance Matrix')
-plt.show()
-
-plt.matshow(data_precision)
-plt.title('Sample Precision Matrix')
-plt.show()
-
-data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
 
 
-# get mean (N,1) vector of data across N dimensions
-mean = np.mean(data_train, axis = 0)
-# subtract the mean
-x = data_train - mean
-# calculate standard deviation
-std = np.std(x, axis = 0)
-# divide by standard deviation
-x /= std
+
+
 
 # now x is zero centered with variance 1 in each dimension
 
