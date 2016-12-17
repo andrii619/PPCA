@@ -7,7 +7,8 @@ except ImportError:
 import numpy as np
 import os
 from scipy.misc import imread
-
+import math
+from scipy.spatial import distance
 
 
 def is_pos_def(x):
@@ -16,6 +17,23 @@ def is_pos_def(x):
 def is_pos_semi_def(x):
     return np.all(np.linalg.eigvals(x) >= 0)
 
+
+def get_relative_error(data_train, data_reconstructed, num_points):
+	reconstruction_error=[]
+	for i in range(num_points):
+		error = np.linalg.norm(data_reconstructed[i]-data_train[i], ord=2)/(np.linalg.norm(data_train[i], ord=2))
+		reconstruction_error.append(error)
+	reconstruction_error = np.array(reconstruction_error)
+	return reconstruction_error
+
+
+def get_absolute_error(data_train, data_reconstructed, num_points):
+	reconstruction_error=[]
+	for i in range(num_points):
+		error = np.linalg.norm(data_reconstructed[i]-data_train[i], ord=2)
+		reconstruction_error.append(error)
+	reconstruction_error = np.array(reconstruction_error)
+	return reconstruction_error
 
 # N = number of dimensions
 def generate_multivariate(N = 50, s=1/8, num_points=1000):
@@ -51,7 +69,8 @@ def generate_multivariate(N = 50, s=1/8, num_points=1000):
 					Precision[i,j]=0.245
 					Precision[j,i]=0.245
 	Covariance = np.linalg.inv(Precision)
-	data= np.random.multivariate_normal(Mean, Covariance, num_point)
+	data= np.random.multivariate_normal(Mean, Covariance, num_points)
+	print("Covariance Matrix is Positive Semidefinite? "+str(is_pos_semi_def(Covariance)))
 	return data
 
 def load_CIFAR_batch(filename):
