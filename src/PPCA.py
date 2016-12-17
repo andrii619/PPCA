@@ -23,19 +23,15 @@ from scipy.spatial import distance
 from sklearn.model_selection import train_test_split
 
 
-def is_pos_def(x):
-    return np.all(np.linalg.eigvals(x) > 0)
-
-def is_pos_semi_def(x):
-    return np.all(np.linalg.eigvals(x) >= 0)
-
-
 # Seed the random number generator
 np.random.seed(148007482)
 
 # Parameters
 N = 50	#this is our number of dimensions
 num_points = 1000
+
+
+data = generate_multivariate(N, s, num_points)
 
 # We need to produce a random covariance matrix
 # We do this using the squared exponential covariance function k = exp(-r^2/2l^2)
@@ -47,54 +43,6 @@ num_points = 1000
 
 # We also generate random N dimensional mean vector with values from 0 to 10
 #mean = np.random.uniform(0, 5, N)
-Mean = np.random.randint(10, size=N )
-
-# sample uniform random variable
-X = np.concatenate((np.random.uniform(0, 1, N), np.random.uniform(0, 1, N)))[:, np.newaxis]
-X.shape = (N, 2)
-
-# Create the random covariance matrix
-A = np.zeros((N,N))
-s=1/8
-# We create the lower triangular part of A and then replicate it to the upper half of A
-for i in range(N):
-	for j in range(i+1):
-		Pr = (1/np.sqrt(2*math.pi))*math.exp((-1/(2*s))*distance.euclidean(X[i],X[j]))
-		##Pr = math.exp((-1/(2*s))*distance.euclidean(X[i],X[j]))
-		uniform = np.random.uniform(0, 1, 1) # draw one smaple from the uniform variable
-		if(Pr >= uniform): # If the value is greater than the sample
-			A[i,j] = 1
-			if(i!=j): # replicate to the upper half
-				A[j,i]=1
-		else:# if the value of Pr is less we put a zero 
-			A[i,j] = 0
-			if(i!=j): # replicate to the upper half
-				A[j,i] = 0
-
-
-Precision = np.zeros((N,N))
-for i in range(N):
-	for j in range(i+1):
-		if(j==i):
-			Precision[i,j] = 1
-		else:
-			if(A[i,j]==1):
-				Precision[i,j]=0.245
-				Precision[j,i]=0.245
-
-Covariance = np.linalg.inv(Precision)
-
-print("Covariance Matrix is Positive Semidefinite? "+str(is_pos_semi_def(Covariance)))
-
-plt.matshow(Precision)
-plt.title('Generated Random Precision Matrix')
-plt.show()
-
-plt.matshow(Covariance)
-plt.title('Generated Random Covariance Matrix')
-plt.show()
-
-data= np.random.multivariate_normal(Mean, Covariance, 1000)
 
 data_covariance = np.cov(data.T)
 data_precision = np.linalg.inv(data_covariance.T)
