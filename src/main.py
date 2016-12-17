@@ -15,6 +15,7 @@ np.random.seed(148007482)
 N = 20	#this is our number of dimensions
 num_points = 1000
 s = 1/8 # parameter for the stationary random covatiance matrix
+cifar10_dir = '../data/'
 
 # generate data by sampling from N dimansional Gaussian
 data = generate_multivariate(N, s, num_points)
@@ -62,5 +63,142 @@ plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error')
 plt.title('Relative Error of Reconstructing 800 points with PCA')
+plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
 plt.show()
+
+# now do PCA on the test data set
+data_std = pca.fit(data_test)
+data_reduced = pca.transform_data(data_std, None)
+data_reconstructed = pca.inverse_transform(data_reduced, None)
+data_reconstructed = pca.inverse_standarize(data_reconstructed)
+reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
+reconstruction_error_absolute = get_absolute_error(data_test, data_reconstructed, (int)(num_points*0.2))
+
+r = range(0, (int)(num_points*0.2))
+plt.subplot(121)
+plt.bar(r,reconstruction_error_absolute, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error')
+plt.title('Absolute Error of Reconstructing Test Data with PCA')
+
+plt.subplot(122)
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error(%)')
+plt.title('Relative Error of Reconstructing Test Data with PCA')
+plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
+plt.show()
+
+#######################################################################################
+# Do PPCA on this data set
+
+
+
+
+
+
+
+
+
+
+##################################################################################
+# Now do PCA on CIFAR-10 data set 
+X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
+
+# Visualize some examples from the dataset.
+# We show a few examples of training images from each class.
+plt.ion()
+classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+num_classes = len(classes)
+samples_per_class = 7
+
+indexes = []
+
+for y, cls in enumerate(classes):
+	#print("y "+str(y)+ " idx "+str(cls))
+	idxs = np.flatnonzero(y_train == y)
+	idxs = np.random.choice(idxs, samples_per_class, replace=False)
+	indexes = np.concatenate((indexes, idxs), axis=0)
+
+indexes = np.reshape(indexes, (num_classes, -1))
+for j in range(num_classes):
+	for i, idx in enumerate(indexes[j]):
+		#print("i "+str(i)+ " idx "+str(idx))
+		plt_idx = i * num_classes + j + 1
+		#print("plt index "+str(plt_idx))
+		plt.subplot(samples_per_class, num_classes, plt_idx)
+		plt.imshow(X_train[idx].astype('uint8'))
+		plt.axis('off')
+		if i == 0:
+			plt.title(classes[j])
+	plt.suptitle("Original CIFAR-10 data set")
+	plt.show()
+
+# Reshape the image data into rows
+X_train = np.reshape(X_train, (X_train.shape[0], -1))
+X_test = np.reshape(X_test, (X_test.shape[0], -1))
+
+pca = PCA()
+X_std = pca.fit(X_train)
+
+X_reduced = pca.transform_data(X_std, None)
+
+X_reconstructed = pca.inverse_transform(X_reduced, None)
+
+#
+X_reconstructed = pca.inverse_standarize(X_reconstructed)
+# Calculte reconstruction error
+reconstruction_error_relative = get_relative_error(X_train, X_reconstructed, 50000)
+
+plt.figure()
+plt.xlabel('Error(%)')
+plt.ylabel('Count')
+plt.title('Relative Error of Reconstructing CIFAR training points with PCA')
+plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
+
+
+
+
+# reshape the data 
+X_reconstructed = np.reshape(X_reconstructed, (X_reconstructed.shape[0], 32, 32, 3))
+# visualize reconstructed data
+for j in range(num_classes):
+	for i, idx in enumerate(indexes[j]):
+		#print("i "+str(i)+ " idx "+str(idx))
+		plt_idx = i * num_classes + j + 1
+		#print("plt index "+str(plt_idx))
+		plt.subplot(samples_per_class, num_classes, plt_idx)
+		plt.imshow(X_reconstructed[idx].astype('uint8'))
+		plt.axis('off')
+		if i == 0:
+			plt.title(classes[j])
+	plt.suptitle("PCA Reconstructed CIFAR-10 with "+str(pca.num_components)+" components")
+	plt.show()
+
+# do PCA on CIFAR-10 test data
+X_std = pca.fit(X_test)
+
+X_reduced = pca.transform_data(X_std, None)
+
+X_reconstructed = pca.inverse_transform(X_reduced, None)
+
+#
+X_reconstructed = pca.inverse_standarize(X_reconstructed)
+# Calculte reconstruction error
+reconstruction_error_relative = get_relative_error(X_test, X_reconstructed, 10000)
+plt.figure()
+plt.xlabel('Error(%)')
+plt.ylabel('Count')
+plt.title('Relative Error of Reconstructing CIFAR test points with PCA')
+plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
+
+# Do PPCA on CIFAR-10 data set 
+
+
+
+
+
+
+
+
 

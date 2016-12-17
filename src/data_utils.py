@@ -22,6 +22,7 @@ def get_relative_error(data_train, data_reconstructed, num_points):
 	reconstruction_error=[]
 	for i in range(num_points):
 		error = np.linalg.norm(data_reconstructed[i]-data_train[i], ord=2)/(np.linalg.norm(data_train[i], ord=2))
+		error = error*100
 		reconstruction_error.append(error)
 	reconstruction_error = np.array(reconstruction_error)
 	return reconstruction_error
