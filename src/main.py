@@ -1,7 +1,7 @@
 # Our imports
 from data_utils import *
 from PCA import *
-from PPCA import *
+#from PPCA import *
 
 # Python imports
 import numpy as np
@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 np.random.seed(148007482)
 
 # Parameters
-N = 50	#this is our number of dimensions
+N = 20	#this is our number of dimensions
 num_points = 1000
 s = 1/8 # parameter for the stationary random covatiance matrix
 
@@ -36,11 +36,14 @@ data_train, data_test = train_test_split(data, test_size=0.2, random_state=14800
 
 pca = PCA()
 
-data_train = pca.fit(data_train)
+data_std = pca.fit(data_train)
 
-data_reduced = pca.transform_data(data_train, None)
+data_reduced = pca.transform_data(data_std, None)
 
 data_reconstructed = pca.inverse_transform(data_reduced, None)
+
+#
+data_reconstructed = pca.inverse_standarize(data_reconstructed)
 
 reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
 

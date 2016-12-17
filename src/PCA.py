@@ -5,9 +5,15 @@ import numpy as np
 class PCA(object):
 	def __init__(self):
 		self.num_components = 0
+		self.mean = None
+		self.std = None
+		self.U = None
+		self.S = None
+		self.V = None
+		self.init = False
 	
 	def standarize(self, data):
-		if(self.mean == None):
+		if(self.init == False):
 			mean = np.mean(data, axis = 0)
 			self.mean = mean
 			data = data - mean
@@ -16,21 +22,22 @@ class PCA(object):
 			self.std = std
 			# divide by standard deviation
 			data /= std
+			self.init = True
 		else:
 			data = data - self.mean
 			data /= self.std
 		return data
 	
 	def inverse_standarize(self, data):
-		if(self.mean != None):
-			data /= self.std
+		if(self.init == True):
+			data *= self.std
 			data = data + self.mean
 		return data
 	
 	def fit(self, data, explained_variance = 95):
 		data = self.standarize(data)
 		# get the NxN covariance matrix of the data 
-		cov = np.dot(data.T, data) / (data.shape[0]-1)
+		cov = np.dot(data.T, data) / (data.shape[0])
 		# we need to do svd decomposition of the covariance matrix
 		U,S,V = np.linalg.svd(cov)
 		self.U = U
