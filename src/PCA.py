@@ -43,15 +43,7 @@ class PCA(object):
 		self.U = U
 		self.S = S
 		self.V = V
-		
-		#eig_vals, eig_vecs = np.linalg.eig(cov)
-		# get the eigenvalue, eigenvector pairs
-		#eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:,i]) for i in range(len(eig_vals))]
-		# sort the pairs based on decreasing eigenvalues
-		#eig_pairs.sort(key=lambda x: data[0], reverse=True)
-		#tot = sum(eig_vals)
 		tot = sum(S)
-		#var_exp = [(i / tot)*100 for i in sorted(eig_vals, reverse=True)]
 		var_exp = [(i / tot)*100 for i in sorted(S, reverse=True)]
 		cum_var_exp = np.cumsum(var_exp)
 		num_components = 0
@@ -79,37 +71,3 @@ class PCA(object):
 		else:
 			X_reconstructed = np.dot(data, self.U[:,:num_components].T)
 		return X_reconstructed
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-	
-		

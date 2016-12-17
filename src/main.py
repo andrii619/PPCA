@@ -66,8 +66,9 @@ plt.title('Relative Error of Reconstructing 800 points with PCA')
 plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
 plt.show()
 
-# now do PCA on the test data set
-data_std = pca.fit(data_test)
+# now do PCA on the test data set. We do not fit again just standarise
+#data_std = pca.fit(data_test)
+data_std = pca.standarize(data_test)
 data_reduced = pca.transform_data(data_std, None)
 data_reconstructed = pca.inverse_transform(data_reduced, None)
 data_reconstructed = pca.inverse_standarize(data_reconstructed)
@@ -88,18 +89,6 @@ plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing Test Data with PCA')
 plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
 plt.show()
-
-#######################################################################################
-# Do PPCA on this data set
-
-
-
-
-
-
-
-
-
 
 ##################################################################################
 # Now do PCA on CIFAR-10 data set 
@@ -176,8 +165,8 @@ for j in range(num_classes):
 	plt.show()
 
 # do PCA on CIFAR-10 test data
-X_std = pca.fit(X_test)
-
+#X_std = pca.fit(X_test)
+X_std = pca.standarize(X_test)
 X_reduced = pca.transform_data(X_std, None)
 
 X_reconstructed = pca.inverse_transform(X_reduced, None)
@@ -191,6 +180,13 @@ plt.xlabel('Error(%)')
 plt.ylabel('Count')
 plt.title('Relative Error of Reconstructing CIFAR test points with PCA')
 plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
+
+
+#######################################################################################
+# Do PPCA on multivariate gaussian set
+
+
+
 
 # Do PPCA on CIFAR-10 data set 
 

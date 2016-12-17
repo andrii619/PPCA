@@ -1,17 +1,3 @@
-#######
-#
-# Author: Andrii Hlyvko
-# Stochastic Signals and Systems Fall 2016
-# Date: 12/21/2016
-#
-# In this project I implement the Probabilistic Principal Component Analysis using python.
-# It will be compared to the regular Principal Component Analysis using several metrics. 
-# We will compare them using the reconstruction error and the prediction error once we fit the model.
-# The data will be generated using latent Gaussian variable model. 
-#
-#####
-
-
 # Imports
 from data_utils import *
 import numpy as np
@@ -22,32 +8,6 @@ import sys
 from scipy.spatial import distance
 from sklearn.model_selection import train_test_split
 
-
-
-# visualize 
-for j in range(num_classes):
-	for i, idx in enumerate(indexes[j]):
-		#print("i "+str(i)+ " idx "+str(idx))
-		plt_idx = i * num_classes + j + 1
-		#print("plt index "+str(plt_idx))
-		plt.subplot(samples_per_class, num_classes, plt_idx)
-		plt.imshow(X_reconstructed[idx].astype('uint8'))
-		plt.axis('off')
-		if i == 0:
-			plt.title(classes[j])
-	plt.show()
-
-##########################################################################################################
-#### Now we do PPCA on the data
-# data = Wx + mu + epsilon
-# data is D dimensional
-# x is L dimensional such that L<<D
-# mu is L dimensional vector
-# W is DxL matrix
-# epsilon is L dimensional Gaussian noise 
-# mu = mean of the data
-# we need to find W and epsilon so that we can estimate the latent variables x|data
-# the EM approach is more efficient than calculating the closed form solutions to model parameters
 
 class PPCA(object):
 	def __init__(self, latent_dim=2, sigma=1.0, max_iter = 20):
