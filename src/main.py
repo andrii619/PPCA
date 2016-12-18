@@ -1,7 +1,7 @@
 # Our imports
 from data_utils import *
 from PCA import *
-#from PPCA import *
+from PPCA import *
 
 # Python imports
 import numpy as np
@@ -35,27 +35,27 @@ plt.show()
 # split the data into training and validation sets
 data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
 
-pca = PCA()
-data_std = pca.fit(data_train)
-data_reduced = pca.transform_data(data_std, None)
-data_reconstructed = pca.inverse_transform(data_reduced, None)
-data_reconstructed = pca.inverse_standarize(data_reconstructed)
+pca1 = PCA()
+data_std = pca1.fit(data_train)
+data_reduced = pca1.transform_data(data_std, None)
+data_reconstructed = pca1.inverse_transform(data_reduced, None)
+data_reconstructed = pca1.inverse_standarize(data_reconstructed)
 reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
-mult_pca_components = pca.num_components
+mult_pca_components = pca1.num_components
 
 r = range(0, (int)(num_points*0.8))
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing  Training Set 1 with PCA')
-plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
+plt.suptitle("PCA Reconstruction Error with "+str(pca1.num_components)+" components")
 plt.show()
 
 # now do PCA on the test data set. We do not fit again just standarise
-data_std = pca.standarize(data_test)
-data_reduced = pca.transform_data(data_std, None)
-data_reconstructed = pca.inverse_transform(data_reduced, None)
-data_reconstructed = pca.inverse_standarize(data_reconstructed)
+data_std = pca1.standarize(data_test)
+data_reduced = pca1.transform_data(data_std, None)
+data_reconstructed = pca1.inverse_transform(data_reduced, None)
+data_reconstructed = pca1.inverse_standarize(data_reconstructed)
 reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
 
 r = range(0, (int)(num_points*0.2))
@@ -63,7 +63,7 @@ plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
-plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
+plt.suptitle("PCA Reconstruction Error with "+str(pca1.num_components)+" components")
 plt.show()
 
 ##################################################################################
@@ -224,5 +224,110 @@ plt.xlabel('Data Points')
 plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing CIFAR-10 Test Set with PPCA('+str(ppca.L)+" components)")
 plt.show()
+
+
+
+
+
+#############################################
+# PPCA test 
+data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
+
+L = mult_pca_components
+N = 800
+D = 50
+max_iter = 20
+
+# standarize the data 
+mean = np.mean(data_train, axis = 0)
+data_std = data_train - mean
+
+std = np.std(data_std, axis = 0)
+
+data_std /= std
+
+
+
+# initialize model parameters
+mu = mean
+W = np.random.rand(D, L) # DxL = 50x38
+sigma = 1.0		# sigma^2 model parameter
+
+for i in range(50):
+	#         LxD * DxL +   LxL = LxL
+	M = np.transpose(W).dot(W) + sigma * np.eye(L)
+	Minv = Minv = np.linalg.inv(M)
+	#print("M shape: "+str(M.shape))
+	#         LxL *  LxD =  LxD   * DxN =  LxN
+	# expectation for each data point
+	ExpZ =  Minv.dot(np.transpose(W)).dot((data_train-mu).T)
+	#print("ExpZ shape: "+str(ExpZ.shape))
+	#              LxL  +  LxN * NxL = LxL 
+	ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ))
+	#DxL  =   NxD * NxL  * 
+	Wnew = (np.transpose(data_std).dot(np.transpose(ExpZ))).dot(np.linalg.inv(ExpZtrZ))
+	temp_sum = 0
+	for j in range(N):
+		temp_sum += distance.euclidean(data_train[i], mu) - 2*np.transpose(np.transpose(ExpZ)[j]).dot(np.transpose(Wnew)).dot(data_train[j]-mu) + np.trace(ExpZtrZ.dot(np.transpose(Wnew).dot(Wnew)))
+	sigmaNew = (1/(N*D))*temp_sum
+	
+	W = Wnew
+	sigma = sigmaNew
+
+np.sum(pca.S[221:])
+
+M = np.transpose(W).dot(W) + sigma * np.eye(L)  # M = W.T*W + sigma^2*I
+Minv = np.linalg.inv(M)
+
+latent_data = Minv.dot(np.transpose(W)).dot(np.transpose(data_train - mu))
+latent_data = np.transpose(latent_data)
+
+# reconstruct 
+reconstruct = (np.transpose((W).dot(np.transpose(latent_data))) + mu)
+
+# reverse trandr
+
+reconstruction_error_relative = get_relative_error(data_train, reconstruct, 800)
+
+r = range(0, 800)
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error(%)')
+plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
+plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
