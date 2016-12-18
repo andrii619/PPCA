@@ -260,10 +260,10 @@ for i in range(50):
 	#print("M shape: "+str(M.shape))
 	#         LxL *  LxD =  LxD   * DxN =  LxN
 	# expectation for each data point
-	ExpZ =  Minv.dot(np.transpose(W)).dot((data_train-mu).T)
+	ExpZ =  Minv.dot(np.transpose(W)).dot((data_train-mu).T) # matrix of E[Zn] for all N variables
 	#print("ExpZ shape: "+str(ExpZ.shape))
 	#              LxL  +  LxN * NxL = LxL 
-	ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ))
+	ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ)) # LxL covariance matrix for 
 	#DxL  =   NxD * NxL  * 
 	Wnew = (np.transpose(data_std).dot(np.transpose(ExpZ))).dot(np.linalg.inv(ExpZtrZ))
 	temp_sum = 0
@@ -273,8 +273,9 @@ for i in range(50):
 	
 	W = Wnew
 	sigma = sigmaNew
+	
 
-np.sum(pca.S[221:])
+(1/L)*np.sum(pca1.S[38:])
 
 M = np.transpose(W).dot(W) + sigma * np.eye(L)  # M = W.T*W + sigma^2*I
 Minv = np.linalg.inv(M)
@@ -282,8 +283,8 @@ Minv = np.linalg.inv(M)
 latent_data = Minv.dot(np.transpose(W)).dot(np.transpose(data_train - mu))
 latent_data = np.transpose(latent_data)
 
-# reconstruct 
-reconstruct = (np.transpose((W).dot(np.transpose(latent_data))) + mu)
+# reconstruct  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
+reconstruct =  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
 
 # reverse trandr
 
@@ -296,38 +297,3 @@ plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
 plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
