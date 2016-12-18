@@ -176,7 +176,7 @@ reconstruction_error_relative = get_relative_error(data_train, data_reconstructe
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error')
-plt.title('Relative Error of Reconstructing 800 points with PPCA')
+plt.title('Relative Error of Reconstructing Training Set 1 with PPCA('+str(ppca.L)+" components)")
 plt.show()
 
 # do PPCA on remaining test set 
@@ -185,21 +185,44 @@ data_reduced = ppca.transform_data(data_std, None)
 data_reconstructed = ppca.inverse_transform(data_reduced, None)
 data_reconstructed = ppca.inverse_standarize(data_reconstructed)
 reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
-reconstruction_error_absolute = get_absolute_error(data_test, data_reconstructed, (int)(num_points*0.2))
 
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error(%)')
-plt.title('Relative Error of Reconstructing Test Data with PPCA')
+plt.title('Relative Error of Reconstructing Test Set 1 with PPCA('+str(ppca.L)+" components)")
 plt.show()
 
+
+##############################################################################################
 # Do PPCA on CIFAR-10 data set 
+X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 
 
+ppca = PPCA(latent_dim = cif_num_components)
+
+data_std = ppca.fit(X_train)
+data_reduced = ppca.transform_data(data_std)
+data_reconstructed = ppca.inverse_transform(data_reduced, None)
+data_reconstructed = ppca.inverse_standarize(data_reconstructed)
+
+reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error')
+plt.title('Relative Error of Reconstructing CIFAR-10 Training Set with PPCA('+str(ppca.L)+" components)")
+plt.show()
 
 
+data_std = ppca.standarize(X_test)
+data_reduced = ppca.transform_data(data_std, None)
+data_reconstructed = ppca.inverse_transform(data_reduced, None)
+data_reconstructed = ppca.inverse_standarize(data_reconstructed)
+reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
 
-
-
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error(%)')
+plt.title('Relative Error of Reconstructing CIFAR-10 Test Set with PPCA('+str(ppca.L)+" components)")
+plt.show()
 
 
