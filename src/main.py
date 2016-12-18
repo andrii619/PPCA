@@ -297,3 +297,40 @@ plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
 plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
 plt.show()
+
+
+
+latent_data = Minv.dot(np.transpose(W)).dot(np.transpose(data_test - mu))
+latent_data = np.transpose(latent_data)
+
+# reconstruct  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
+reconstruct =  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
+
+# reverse trandr
+
+reconstruction_error_relative = get_relative_error(data_test, reconstruct, 800)
+
+r = range(0, 800)
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error(%)')
+plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
+plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
+plt.show()
+
+
+
+
+ppca = PPCA(latent_dim = mult_pca_components)
+
+data_train = ppca.fit(data_train)
+data_reduced = ppca.transform_data(data_train)
+data_reconstructed = ppca.inverse_transform(data_reduced)
+#data_reconstructed = ppca.inverse_standarize(data_reconstructed)
+
+reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
+plt.bar(r,reconstruction_error_relative, width=1,color="blue")
+plt.xlabel('Data Points')
+plt.ylabel('Error')
+plt.title('Relative Error of Reconstructing Training Set 1 with PPCA('+str(ppca.L)+" components)")
+plt.show()
