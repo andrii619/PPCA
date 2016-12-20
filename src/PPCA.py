@@ -87,27 +87,65 @@ class PPCA(object):
 		W = np.random.rand(self.D, self.L)
 		mu = self.mu
 		sigma = self.sigma
+		L = self.L
+		x = self.x
+		#print("x shape "+str(x.shape))
 		
 		for i in range(self.max_iter):
 			##### E step
 			#         LxD * DxL +   LxL = LxL
 			M = np.transpose(W).dot(W) + sigma * np.eye(L)
 			Minv = np.linalg.inv(M)
+			#        LxL *     LxD          * DxN =    LxN
 			ExpZ =  Minv.dot(np.transpose(W)).dot((self.x-mu).T) # matrix of E[Zn] for all N variables # calculate the expectation of latent variable Z E[Z] = inv(M)*(W.T)*(x-mu)
-			###ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ))
+			#              LxL   +   LxL     
 			ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ)) # LxL covariance matrix
 			##### M step
-			###Wnew = (data - mu).dot(np.transpose(ExpZ)).dot(np.linalg.inv(ExpZtrZ))
-			Wnew = (np.transpose(self.x-mu).dot(np.transpose(ExpZ))).dot(np.linalg.inv(ExpZtrZ))
-			temp_sum = 0
-			for j in range(N):
-				temp_sum += distance.euclidean(self.x[i], mu) - 2*np.transpose(np.transpose(ExpZ)[j]).dot(np.transpose(Wnew)).dot(self.x[j]-mu) + np.trace(ExpZtrZ.dot(np.transpose(Wnew).dot(Wnew)))
-			sigmaNew = (1/(self.N*self.D))*temp_sum
+			#               DxN          NxL      *    LxL  =  DxL
+			Wnew = (np.transpose(x-mu).dot(np.transpose(ExpZ))).dot(np.linalg.inv(ExpZtrZ))
+			#                                                              NxL                    LxD          NxD                     LxL *      LxD             DxL
+			#print("got here Wnew " +str(Wnew.shape))
+			one =  np.linalg.norm(x-mu)
+			#print("got one "+str(one.shape))
+			#          # NxL                 LxD      
+			two = 2*np.trace( np.transpose(ExpZ).dot(np.transpose(Wnew)).dot((x-mu).T) )
+			#print("got two " + str(two.shape))
+			three = np.trace(ExpZtrZ.dot(np.transpose(Wnew).dot(Wnew)))
+			#print("got three "+ str(three.shape))
+			sigmaNew = one -two + three
+			#print("got four "+str(sigmaNew.shape))
+			#sigmaNew = np.linalg.norm(x-mu) - 2*np.transpose(ExpZ).dot(np.transpose(Wnew)).dot((x-mu).T) + np.trace(ExpZtrZ.dot(np.transpose(Wnew).dot(Wnew)))
+			sigmaNew = (1/(self.N*self.D))*sigmaNew
+			sigmaNew = np.absolute(sigmaNew)
 			W = Wnew
 			sigma = sigmaNew
-		
+			print("iteration "+str(i))
+		#print("got five")
 		self.W = W
 		self.sigma = sigma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

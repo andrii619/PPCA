@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 # Seed the random number generator
-np.random.seed(148007482)
+#np.random.seed(148007482)
 
 # Parameters
 N = 50	#this is our number of dimensions
@@ -163,16 +163,16 @@ plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
 #######################################################################################
 #######################################################################################
 # Do PPCA on multivariate gaussian set
-data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
-
-ppca = PPCA(latent_dim = mult_pca_components)
+##data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
+data_train, data_test = train_test_split(data, test_size=0.2)
+ppca = PPCA(latent_dim = mult_pca_components, max_iter = 50)
 
 data_std = ppca.fit(data_train)
 data_reduced = ppca.transform_data(data_std)
-data_reconstructed = ppca.inverse_transform(data_reduced, None)
-data_reconstructed = ppca.inverse_standarize(data_reconstructed)
+data_reconstructed = ppca.inverse_transform(data_reduced)
 
 reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
+r = range(0, (int)(num_points*0.8))
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error')
@@ -180,12 +180,12 @@ plt.title('Relative Error of Reconstructing Training Set 1 with PPCA('+str(ppca.
 plt.show()
 
 # do PPCA on remaining test set 
-data_std = ppca.standarize(data_test)
-data_reduced = ppca.transform_data(data_std, None)
-data_reconstructed = ppca.inverse_transform(data_reduced, None)
-data_reconstructed = ppca.inverse_standarize(data_reconstructed)
+#ppca = PPCA(latent_dim = mult_pca_components, max_iter = 50)
+#data_test = ppca.fit(data_test)
+data_reduced = ppca.transform_data(data_test)
+data_reconstructed = ppca.inverse_transform(data_reduced)
 reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
-
+r = range(0, (int)(num_points*0.2))
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
 plt.xlabel('Data Points')
 plt.ylabel('Error(%)')
@@ -193,17 +193,21 @@ plt.title('Relative Error of Reconstructing Test Set 1 with PPCA('+str(ppca.L)+"
 plt.show()
 
 
+
+
+
+
+##############
 ##############################################################################################
 # Do PPCA on CIFAR-10 data set 
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 
 
-ppca = PPCA(latent_dim = cif_num_components)
+ppca = PPCA(latent_dim = cif_num_components, max_iter = 10)
 
 data_std = ppca.fit(X_train)
 data_reduced = ppca.transform_data(data_std)
 data_reconstructed = ppca.inverse_transform(data_reduced, None)
-data_reconstructed = ppca.inverse_standarize(data_reconstructed)
 
 reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
 plt.bar(r,reconstruction_error_relative, width=1,color="blue")
@@ -225,112 +229,3 @@ plt.ylabel('Error(%)')
 plt.title('Relative Error of Reconstructing CIFAR-10 Test Set with PPCA('+str(ppca.L)+" components)")
 plt.show()
 
-
-
-
-
-#############################################
-# PPCA test 
-data_train, data_test = train_test_split(data, test_size=0.2, random_state=148007482)
-
-L = mult_pca_components
-N = 800
-D = 50
-max_iter = 20
-
-# standarize the data 
-mean = np.mean(data_train, axis = 0)
-data_std = data_train - mean
-
-std = np.std(data_std, axis = 0)
-
-data_std /= std
-
-
-
-# initialize model parameters
-mu = mean
-W = np.random.rand(D, L) # DxL = 50x38
-sigma = 1.0		# sigma^2 model parameter
-
-for i in range(50):
-	#         LxD * DxL +   LxL = LxL
-	M = np.transpose(W).dot(W) + sigma * np.eye(L)
-	Minv = Minv = np.linalg.inv(M)
-	#print("M shape: "+str(M.shape))
-	#         LxL *  LxD =  LxD   * DxN =  LxN
-	# expectation for each data point
-	ExpZ =  Minv.dot(np.transpose(W)).dot((data_train-mu).T) # matrix of E[Zn] for all N variables
-	#print("ExpZ shape: "+str(ExpZ.shape))
-	#              LxL  +  LxN * NxL = LxL 
-	ExpZtrZ = sigma*Minv + ExpZ.dot(np.transpose(ExpZ)) # LxL covariance matrix for 
-	#DxL  =   NxD * NxL  * 
-	Wnew = (np.transpose(data_std).dot(np.transpose(ExpZ))).dot(np.linalg.inv(ExpZtrZ))
-	temp_sum = 0
-	for j in range(N):
-		temp_sum += distance.euclidean(data_train[i], mu) - 2*np.transpose(np.transpose(ExpZ)[j]).dot(np.transpose(Wnew)).dot(data_train[j]-mu) + np.trace(ExpZtrZ.dot(np.transpose(Wnew).dot(Wnew)))
-	sigmaNew = (1/(N*D))*temp_sum
-	
-	W = Wnew
-	sigma = sigmaNew
-	
-
-(1/L)*np.sum(pca1.S[38:])
-
-M = np.transpose(W).dot(W) + sigma * np.eye(L)  # M = W.T*W + sigma^2*I
-Minv = np.linalg.inv(M)
-
-latent_data = Minv.dot(np.transpose(W)).dot(np.transpose(data_train - mu))
-latent_data = np.transpose(latent_data)
-
-# reconstruct  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
-reconstruct =  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
-
-# reverse trandr
-
-reconstruction_error_relative = get_relative_error(data_train, reconstruct, 800)
-
-r = range(0, 800)
-plt.bar(r,reconstruction_error_relative, width=1,color="blue")
-plt.xlabel('Data Points')
-plt.ylabel('Error(%)')
-plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
-plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
-plt.show()
-
-
-
-latent_data = Minv.dot(np.transpose(W)).dot(np.transpose(data_test - mu))
-latent_data = np.transpose(latent_data)
-
-# reconstruct  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
-reconstruct =  W.dot( np.linalg.inv((W.T).dot(W)) ).dot(M).dot(latent_data.T).T +mu
-
-# reverse trandr
-
-reconstruction_error_relative = get_relative_error(data_test, reconstruct, 800)
-
-r = range(0, 800)
-plt.bar(r,reconstruction_error_relative, width=1,color="blue")
-plt.xlabel('Data Points')
-plt.ylabel('Error(%)')
-plt.title('Relative Error of Reconstructing Test Set 1 with PCA')
-plt.suptitle("PCA Reconstruction Error with "+str(pca.num_components)+" components")
-plt.show()
-
-
-
-
-ppca = PPCA(latent_dim = mult_pca_components)
-
-data_train = ppca.fit(data_train)
-data_reduced = ppca.transform_data(data_train)
-data_reconstructed = ppca.inverse_transform(data_reduced)
-#data_reconstructed = ppca.inverse_standarize(data_reconstructed)
-
-reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
-plt.bar(r,reconstruction_error_relative, width=1,color="blue")
-plt.xlabel('Data Points')
-plt.ylabel('Error')
-plt.title('Relative Error of Reconstructing Training Set 1 with PPCA('+str(ppca.L)+" components)")
-plt.show()
