@@ -5,6 +5,7 @@ from PPCA import *
 
 # Python imports
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
@@ -78,7 +79,6 @@ num_classes = len(classes)
 samples_per_class = 7
 
 indexes = []
-
 for y, cls in enumerate(classes):
 	#print("y "+str(y)+ " idx "+str(cls))
 	idxs = np.flatnonzero(y_train == y)
@@ -200,32 +200,60 @@ plt.show()
 ##############
 ##############################################################################################
 # Do PPCA on CIFAR-10 data set 
+################################################################
+# clear everything from memory 
+del data, data_covariance, data_precision, data_train, data_test
+del pca1, data_std, data_reduced, data_reconstructed, reconstruction_error_relative
+del r, X_train, y_train, X_test, y_test
+del X_std, X_reduced, X_reconstructed
+################################################################
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
+X_train = np.reshape(X_train, (X_train.shape[0], -1))
+X_test = np.reshape(X_test, (X_test.shape[0], -1))
+X_train = X_train[:10000,:]
 
+#X_train, X_test = train_test_split(X_train, test_size=0.5, random_state=148007482)
 
-ppca = PPCA(latent_dim = cif_num_components, max_iter = 10)
+ppca = PPCA(latent_dim = cif_num_components, max_iter = 20)
 
 data_std = ppca.fit(X_train)
 data_reduced = ppca.transform_data(data_std)
-data_reconstructed = ppca.inverse_transform(data_reduced, None)
+data_reconstructed = ppca.inverse_transform(data_reduced)
 
-reconstruction_error_relative = get_relative_error(data_train, data_reconstructed, (int)(num_points*0.8))
-plt.bar(r,reconstruction_error_relative, width=1,color="blue")
-plt.xlabel('Data Points')
-plt.ylabel('Error')
-plt.title('Relative Error of Reconstructing CIFAR-10 Training Set with PPCA('+str(ppca.L)+" components)")
-plt.show()
+reconstruction_error_relative = get_relative_error(X_train, data_reconstructed, 10000)
+
+plt.figure()
+plt.xlabel('Error(%)')
+plt.ylabel('Count')
+plt.title('Relative Error of Reconstructing CIFAR Train Set with PPCA('+str(ppca.L)+" components)")
+plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
 
 
-data_std = ppca.standarize(X_test)
-data_reduced = ppca.transform_data(data_std, None)
-data_reconstructed = ppca.inverse_transform(data_reduced, None)
-data_reconstructed = ppca.inverse_standarize(data_reconstructed)
-reconstruction_error_relative = get_relative_error(data_test, data_reconstructed, (int)(num_points*0.2))
+# plot reconstructed CIFAR set 
+data_reconstructed = np.reshape(data_reconstructed, (data_reconstructed.shape[0], 32, 32, 3))
+# visualize reconstructed data
+# randomly select 70 images from 1 to 10000
+indexes = random.sample(range(10000), 70 )
+indexes = np.reshape(indexes, (10,7))
+for j in range(num_classes):
+	for i, idx in enumerate(indexes[j]):
+		#print("i "+str(i)+ " idx "+str(idx))
+		plt_idx = i * num_classes + j + 1
+		#print("plt index "+str(plt_idx))
+		plt.subplot(samples_per_class, num_classes, plt_idx)
+		plt.imshow(data_reconstructed[idx].astype('uint8'))
+		plt.axis('off')
+	plt.suptitle("PPCA Reconstructed CIFAR-10 with "+str(ppca.L)+" components")
+	plt.show()
 
-plt.bar(r,reconstruction_error_relative, width=1,color="blue")
-plt.xlabel('Data Points')
-plt.ylabel('Error(%)')
-plt.title('Relative Error of Reconstructing CIFAR-10 Test Set with PPCA('+str(ppca.L)+" components)")
-plt.show()
+
+data_reduced = ppca.transform_data(X_test)
+data_reconstructed = ppca.inverse_transform(data_reduced)
+reconstruction_error_relative = get_relative_error(X_test, data_reconstructed, 10000)
+
+plt.figure()
+plt.xlabel('Error(%)')
+plt.ylabel('Count')
+plt.title('Relative Error of Reconstructing CIFAR Test Set with PPCA('+str(ppca.L)+" components)")
+plt.hist(list(reconstruction_error_relative), bins = 100, color="#3F5D7D")
 
