@@ -1,7 +1,7 @@
 # PPCA
+# Author: Andrii Hlyvko
 Implementation of Probabilistic Principal Component Analysis
 About:
-Author: Andrii Hlyvko
 All code is contained in the src folder. PCA.py and PPCA.py are class files of the implementations of the
 two models. The file data_utils.py is a file containing unility functions.
 Two test files are provided: main.py and CIFAR_test.py. The file main.py generated a random data set and tests 
